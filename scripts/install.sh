@@ -46,4 +46,6 @@ install -Dm 0644 "$PROJECT_DIR/data/$APP_ID.desktop" \
 echo "Installing app icon..."
 install -Dm 0644 "$PROJECT_DIR/res/icons/$APP_ID.svg" "$ICON_DIR/$APP_ID.svg"
 
-echo "Done. Restart the COSMIC panel to pick up the applet (or reboot)."
+echo "Done. The applet desktop entry (with X-CosmicApplet=true) is installed."
+echo "Add it to your panel via:  Settings > Desktop > Panel > Add Applet."
+echo "If it does not appear, restart the panel (or log out and back in)."

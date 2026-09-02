@@ -87,7 +87,11 @@ impl AirDropConfig {
                 .join(".opendrop")
         });
         let debug_dir = airdrop_dir.join("debug");
-        let interface = interface.unwrap_or_else(|| "awdl0".to_string());
+        let interface = if let Some(interface) = interface {
+            interface
+        } else {
+            detect_airdrop_interface()
+        };
 
         // Bare minimum, currently not supporting anything else
         let flags = AirDropReceiverFlags::SUPPORTS_MIXED_TYPES
@@ -295,4 +299,47 @@ pub fn get_ip_for_interface(interface_name: &str, ipv6: bool) -> Option<IpAddr> 
         }
     }
     None
+}
+
+/// Choose the best interface for AirDrop discovery.
+///
+/// Prefers Apple's AWDL interface (`awdl0`) when present, since real AirDrop
+/// runs over it. Otherwise falls back to the first Wi-Fi interface, and finally
+/// to any active interface that has an IP address.
+fn detect_airdrop_interface() -> String {
+    let ifaces = if_addrs::get_if_addrs().ok();
+    let has_ip = |name: &str| -> bool {
+        if let Some(list) = &ifaces {
+            list.iter().any(|i| {
+                i.name == name
+                    && (i.ip().is_ipv4() || (i.ip().is_ipv6() && !i.ip().is_unspecified()))
+            })
+        } else {
+            false
+        }
+    };
+    let names: Vec<String> = if let Some(list) = &ifaces {
+        list.iter().map(|i| i.name.clone()).collect()
+    } else {
+        Vec::new()
+    };
+
+    if names.iter().any(|n| n == "awdl0") && has_ip("awdl0") {
+        return "awdl0".to_string();
+    }
+    // Any wifi interface (wlan0, wl*, etc.)
+    for name in &names {
+        if (name.starts_with("wl") || name == "wlan0") && has_ip(name) {
+            return name.clone();
+        }
+    }
+    // Any interface with an IP, excluding loopback.
+    if let Some(list) = &ifaces {
+        for i in list {
+            if i.name != "lo" && (i.ip().is_ipv4() || !i.ip().is_unspecified()) {
+                return i.name.clone();
+            }
+        }
+    }
+    "awdl0".to_string()
 }
