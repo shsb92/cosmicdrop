@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- CosmicDrop: AirDrop-inspired radar arcs with a shared dot -->
+  <g fill="none" stroke-linecap="round">
+    <!-- Outer arc (radar sweep), dark slate -->
+    <path d="M 64 16
+             A 48 48 0 0 1 108.9 89.8"
+          stroke="#31363e" stroke-width="11"/>
+    <!-- Middle arc -->
+    <path d="M 64 28
+             A 36 36 0 0 1 97.6 88.7"
+          stroke="#5b7599" stroke-width="12"/>
+    <!-- Inner arc -->
+    <path d="M 64 39
+             A 25 25 0 0 1 86.7 86.9"
+          stroke="#7fa8dd" stroke-width="13"/>
+    <!-- Dropped object (center dot) -->
+    <circle cx="64" cy="64" r="9"
+            fill="#7fa8dd" stroke="none"/>
+  </g>
+</svg>

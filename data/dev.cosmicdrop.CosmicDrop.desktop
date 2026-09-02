@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=CosmicDrop
+Comment=Open Apple AirDrop for the COSMIC desktop
+GenericName=File Transfer
+Exec=cosmicdrop
+Icon=dev.cosmicdrop.CosmicDrop
+Terminal=false
+Type=Application
+Categories=Network;FileTransfer;Utility;
+StartupNotify=false
