@@ -12,6 +12,7 @@ use cosmic::widget::list::{button as list_button, list_column};
 use cosmic::widget::{button, column, row, scrollable, text, text_input};
 use cosmic::{Action, Application, Element};
 
+use crate::awdl;
 use crate::client::{AirDropBrowser, AirDropClient, BrowserEvent, Receiver as AirDropReceiver};
 use crate::config::AirDropConfig;
 use crate::server::{AirDropServer, ServerEvent};
@@ -74,6 +75,7 @@ pub struct Window {
     server_rx: Option<MpscReceiver<ServerEvent>>,
     server_running: bool,
     receive_messages: Vec<String>,
+    awdl: Option<awdl::Awdl>,
 
     // Settings
     settings_name: String,
@@ -107,6 +109,7 @@ impl Default for Window {
             server_rx: None,
             server_running: false,
             receive_messages: Vec::new(),
+            awdl: None,
             settings_name,
             settings_model,
             settings_interface,
@@ -147,6 +150,9 @@ impl Application for Window {
                     self.popup = None;
                 }
                 self.stop_discovery();
+                if self.server_running {
+                    self.stop_server();
+                }
                 Task::none()
             }
             Message::Surface(a) => {
@@ -518,6 +524,19 @@ impl Window {
                 self.receive_messages.push(format!("Failed to start: {e}"));
             }
         }
+
+        // Best-effort AWDL setup: the underlying peer-discovery/transport.
+        // Requires privileges; if it fails we keep the app usable.
+        let iface = self.config.interface.clone();
+        match awdl::start(&iface, 6) {
+            Ok(instance) => {
+                self.receive_messages.push("AWDL started.".into());
+                self.awdl = Some(instance);
+            }
+            Err(e) => {
+                self.receive_messages.push(format!("AWDL unavailable: {e}"));
+            }
+        }
     }
 
     fn stop_server(&mut self) {
@@ -526,6 +545,10 @@ impl Window {
         }
         self.server_rx = None;
         self.server_running = false;
+        if let Some(instance) = self.awdl.take() {
+            let _ = instance.stop();
+            self.receive_messages.push("AWDL stopped.".into());
+        }
         self.receive_messages.push("Stopped receiving.".into());
     }
 

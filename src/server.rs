@@ -64,7 +64,12 @@ impl AirDropServer {
         let ip_addr = crate::config::get_ip_for_interface(&config.interface, true)
             .ok_or_else(|| {
                 anyhow!(
-                    "Interface {} does not have an IPv6 address",
+                    "Interface {} does not have an IPv6 address. \
+                     AirDrop advertises a link-local IPv6 (fe80::/10) address, \
+                     so the receive server cannot start on this interface. \
+                     If this is a Wi-Fi card without AWDL support (e.g. Intel \
+                     iwlwifi), AirDrop peers cannot be reached anyway; try a \
+                     different interface or a compatible adapter.",
                     config.interface
                 )
             })?;

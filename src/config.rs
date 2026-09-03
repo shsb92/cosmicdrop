@@ -286,19 +286,34 @@ fn load_key(path: &Path) -> Result<rustls::pki_types::PrivateKeyDer<'static>> {
 }
 
 /// Get the IPv6 address for a given network interface.
+///
+/// When `ipv6` is true, prefers a link-local IPv6 address (fe80::/10) since
+/// that is the address AirDrop advertises and connects over.
 pub fn get_ip_for_interface(interface_name: &str, ipv6: bool) -> Option<IpAddr> {
+    let mut any_v6 = None;
     for iface in if_addrs::get_if_addrs().ok()? {
         if iface.name == interface_name {
             let ip = iface.ip();
-            if ipv6 && ip.is_ipv6() {
-                return Some(ip);
-            }
-            if !ipv6 && ip.is_ipv4() {
+            if ipv6 {
+                if let IpAddr::V6(v6) = ip {
+                    if v6.segments()[0] & 0xffc0 == 0xfe80 {
+                        // link-local preferred
+                        return Some(ip);
+                    }
+                    if any_v6.is_none() {
+                        any_v6 = Some(ip);
+                    }
+                }
+            } else if ip.is_ipv4() {
                 return Some(ip);
             }
         }
     }
-    None
+    if ipv6 {
+        any_v6
+    } else {
+        None
+    }
 }
 
 /// Choose the best interface for AirDrop discovery.

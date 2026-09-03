@@ -30,6 +30,12 @@ once_cell = "1"
 image = "0.25"
 rfd = "0.14"
 
+# Low-level networking for the embedded AWDL (OWL) implementation
+libc = "0.2"
+nix = { version = "0.29", features = ["net", "socket", "ioctl", "uio", "poll", "process", "sched", "signal", "time"] }
+byteorder = "1"
+crc32fast = "1"
+
 [dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic.git"
 features = [

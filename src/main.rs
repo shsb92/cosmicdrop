@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod app;
+mod awdl;
 mod client;
 mod config;
 mod server;

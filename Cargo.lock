@@ -847,6 +847,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "byteorder"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
+
+[[package]]
 name = "byteorder-lite"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1253,16 +1259,20 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "base64",
+ "byteorder",
  "chrono",
+ "crc32fast",
  "env_logger",
  "flate2",
  "futures",
  "hostname",
  "if-addrs",
  "image",
+ "libc",
  "libcosmic",
  "log",
  "mdns-sd",
+ "nix",
  "once_cell",
  "plist",
  "rand 0.8.8",
@@ -1539,7 +1549,7 @@ dependencies = [
  "libc",
  "option-ext",
  "redox_users",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3174,7 +3184,7 @@ version = "1.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a1886916523694cd6ea3d175f03a1e5010699a2a4cc13696d83d7bea1d80638"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

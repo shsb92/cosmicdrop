@@ -39,6 +39,41 @@ pub enum BrowserEvent {
     Removed(String),
 }
 
+/// Choose the address an AirDrop peer should be reached at.
+///
+/// Apple devices advertise a link-local IPv6 address (fe80::/10) on the
+/// AWDL / Wi-Fi interface, so that is what we prefer. Fall back to any IPv6,
+/// then to IPv4, and finally to loopback rather than silently using an
+/// arbitrary entry from the (unordered) advertised address set.
+fn select_airdrop_address(addrs: &std::collections::HashSet<IpAddr>) -> IpAddr {
+    // fe80::/10 is the link-local prefix Apple devices use for AirDrop.
+    let is_link_local = |a: &IpAddr| -> bool {
+        if let IpAddr::V6(v6) = a {
+            v6.segments()[0] & 0xffc0 == 0xfe80
+        } else {
+            false
+        }
+    };
+    let mut ipv6 = None;
+    let mut ipv4 = None;
+    for a in addrs {
+        if a.is_ipv6() {
+            if a.is_loopback() {
+                continue;
+            }
+            if is_link_local(a) {
+                return *a;
+            }
+            if ipv6.is_none() {
+                ipv6 = Some(*a);
+            }
+        } else if !a.is_loopback() && ipv4.is_none() {
+            ipv4 = Some(*a);
+        }
+    }
+    ipv6.or(ipv4).unwrap_or_else(|| IpAddr::from([0, 0, 0, 0, 0, 0, 0, 1]))
+}
+
 impl AirDropBrowser {
     pub fn start(config: &AirDropConfig) -> Result<(Self, Sender<()>)> {
         let mdns = ServiceDaemon::new()?;
@@ -64,12 +99,8 @@ impl AirDropBrowser {
                     if let Ok(event) = receiver.try_recv() {
                         match event {
                             ServiceEvent::ServiceResolved(info) => {
-                                let address = info
-                                    .get_addresses()
-                                    .iter()
-                                    .next()
-                                    .cloned()
-                                    .unwrap_or(IpAddr::from([0, 0, 0, 0, 0, 0, 0, 1]));
+                                let address =
+                                    select_airdrop_address(info.get_addresses());
                                 let id = info.get_fullname().split('.').next().unwrap_or("").to_string();
                                 let flags = info
                                     .get_property_val_str("flags")
